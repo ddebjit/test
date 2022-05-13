@@ -1,0 +1,218 @@
+﻿@{
+    ViewBag.Title = "Contact";
+}
+<div class="row">
+    <div>
+        <button class="btn btn-primary" onclick="sendJSON()">Send JSON</button>
+    </div>
+    <p class="result" style="color:green"></p>
+    <div>
+        <button class="btn btn-primary" id="btnObservation" disabled onclick="visableObservationForm()">Add Observation</button>
+        <div id="addObservationForm" style="display:none;">
+            <label for="PatientID">Patient's ID:</label>
+            <input type="text" id="patientID" name="patientID">
+            <input class="btn btn-primary" type="submit" onclick="ObservationJSON()" name="Submit">
+        </div>
+    </div>
+    <p class="observation" style="color:green"></p>
+    <div>
+        <button class="btn btn-primary" id="btnUpdateObservation" disabled onclick="visableUpdateObservationForm()">Update Observation</button>
+        <div id="addUpdateObservationForm" style="display:none;">
+            <label for="ID">Observation ID:</label>
+            <input type="text" id="ID" name="ID">
+            <label for="value">Value:</label>
+            <input type="text" id="value" name="value">
+            <input class="btn btn-primary" type="submit" onclick="UpdateObservationJSON()" name="Update">
+        </div>
+    </div>
+    <p class="updateobservation" style="color:green"></p>
+</div>
+<script>
+
+    (function (window) {
+        window.extractData = function () {
+            var ret = $.Deferred();
+
+            function onError() {
+                console.log('Loading error', arguments);
+                ret.reject();
+            }
+
+            function onReady(smart) {
+                if (smart.hasOwnProperty('patient')) {
+                    alert(1);
+                } else {
+                    onError();
+                }
+            }
+
+            FHIR.oauth2.ready(onReady, onError);
+            return ret.promise();
+
+        };
+    })(window);
+    function sendJSON() {
+        let result = document.querySelector('.result');
+        var json = "{" +
+            '"resourceType": "Patient",' +
+            '"name": [' +
+            '{' +
+            '"use": "official",' +
+            '"given": ["Debjit"],' +
+            '"family": "Das"' +
+            '}' +
+            '],' +
+            '"gender": "male",' +
+            '"birthDate": "1990-01-26",' +
+            '"telecom": [' +
+            '{' +
+            '"value": "9874729868",' +
+            '"use": "mobile",' +
+            '"system": "phone"' +
+            '},' +
+            '{' +
+            '"system": "email",' +
+            '"value": "mailto:debjit.das@gmail.com"' +
+            '}' +
+            '],' +
+            '"address": [' +
+            '{' +
+            '"line": [' +
+            '"Dum Dum"' +
+            '],' +
+            '"city": "Kolkata",' +
+            '"state": "West Bengal",' +
+            '"postalCode": "700065"' +
+            '}' +
+            ']' +
+            '}';
+
+        //alert(json);
+        // Creating a XHR object
+        let xhr = new XMLHttpRequest();
+        let url = "http://hapi.fhir.org/baseR4/Patient";
+
+        // open a connection
+        xhr.open("POST", url, true);
+
+        // Set the request header
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        // Create a state change callback
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 201) {
+                // Print received data from server
+                result.innerHTML = this.responseText;
+                $("#btnObservation").prop("disabled", false);
+            }
+        };
+        // Sending data with the request
+        xhr.send(json);
+    }
+    function visableObservationForm() {
+        $("#addObservationForm").show();
+    }
+    function ObservationJSON() {
+        let observation = document.querySelector('.observation');
+        debugger;
+        var observationJson = '{' +
+        '"resourceType": "Observation",' +
+        '"status": "final",' +
+        '"code": {' +
+        '"coding": [' +
+        '{' +
+        '"system": "http://loinc.org",' +
+        '"code": "15874-8",' +
+        '"display": "Glucose in Blood"' +
+        '}' +
+        ']' +
+        '},' +
+            '"subject": {' +
+            '"reference": "Patient/' + $("#patientID").val() + '",' +
+        '"display": "Debjit"' +
+        '},' +
+        '"valueQuantity": {' +
+        '"value": 6,' +
+        '"unit": "mmoles/litre",' +
+        '"system": "http://unitsofmeasure.org",' +
+        '"code": "mmol/L"' +
+        '}' +
+        '}';
+
+        //alert(observationJson);
+        // Creating a XHR object
+        let xhr = new XMLHttpRequest();
+        let url = "http://hapi.fhir.org/baseR4/Observation";
+
+        // open a connection
+        xhr.open("POST", url, true);
+
+        // Set the request header
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        // Create a state change callback
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 201) {
+                // Print received data from server
+                observation.innerHTML = this.responseText;
+                $("#btnUpdateObservation").prop("disabled", false);
+            }
+        };
+        // Sending data with the request
+        xhr.send(observationJson);
+    }
+    function visableUpdateObservationForm() {
+        $("#addUpdateObservationForm").show();
+    }
+    function UpdateObservationJSON() {
+        let updateobservation = document.querySelector('.updateobservation');
+        debugger;
+        var updateobservationJson = '{' +
+        '"resourceType": "Observation",' +
+        '"status": "corrected",' +
+            '"id": "' + $("#ID").val() + '",' +
+        '"code": {' +
+        '"coding": [' +
+        '{' +
+        '"system": "http://loinc.org",' +
+        '"code": "15874-8",' +
+        '"display": "Glucose in Blood"' +
+        '}' +
+        ']' +
+        '},' +
+        '"subject": {' +
+            '"reference": "Patient/' + $("#patientID").val() + '",' +
+        '"display": "Debjit"' +
+        '},' +
+        '"valueQuantity": {' +
+            '"value": ' + $("#value").val() + ',' +
+        '"unit": "mmoles/litre",' +
+        '"system": "http://unitsofmeasure.org",' +
+        '"code": "mmol/L"' +
+            '}'+
+        '}';
+
+
+        //alert(updateobservationJson);
+        // Creating a XHR object
+        let xhr = new XMLHttpRequest();
+        let url = "http://hapi.fhir.org/baseR4/Observation/"+ $("#ID").val();
+
+        // open a connection
+        xhr.open("PUT", url, true);
+
+        // Set the request header
+        xhr.setRequestHeader("Content-Type", "application/json");
+
+        // Create a state change callback
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                // Print received data from server
+                updateobservation.innerHTML = this.responseText;
+                //$("#btnObservation").prop("disabled", false);
+            }
+        };
+        // Sending data with the request
+        xhr.send(updateobservationJson);
+    }
+</script>
